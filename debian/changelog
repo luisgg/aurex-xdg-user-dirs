@@ -1,3 +1,9 @@
+aurex-xdg-user-dirs (0.26+aurex4) precise; urgency=low
+
+  * Fixed encoding function in modify_bookmark to avoid duplicates
+
+ -- Luis Antonio Garcia Gisbert <luisgg@gmail.com>  Tue, 04 Dec 2012 16:14:06 +0100
+
 aurex-xdg-user-dirs (0.26+aurex3) precise; urgency=low
 
   * Fixed link creation

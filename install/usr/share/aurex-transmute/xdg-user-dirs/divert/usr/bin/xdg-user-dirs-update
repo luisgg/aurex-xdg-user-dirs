@@ -102,15 +102,16 @@ escape(){
 	echo -n "$1" | perl -pe's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg'
 }
 
+escape_stdin(){
+	perl -pe's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg' |sed 's#%2F#/#g;s#%0A#\n#g;s#%3A#:#g'
+}
+
 modify_bookmark(){
-	LOCALIZED="file://$HOME/$(escape "$(LANGUAGE="$LNG" gettext "$1")")"
-	#log LOCALIZED "$LOCALIZED"
-	OLD="file://$(escape "$2"|sed 's#%2F#/#g')"
-	sed -i -e "\#^$OLD#d" "$HOME/.gtk-bookmarks"
-	echo $LOCALIZED >> "$HOME/.gtk-bookmarks"
-	#log OLD "$OLD"
-	cat "$HOME"/.gtk-bookmarks |sort -u >"$HOME"/.gtk-bookmarks.bak
-	mv -f "$HOME"/.gtk-bookmarks.bak  "$HOME"/.gtk-bookmarks
+	NEW_STR="$(echo -n "file://$HOME/$(LANGUAGE="$LNG" gettext "$1")" |escape_stdin)"
+	OLD_STR="$(echo -n "file://$2" |escape_stdin)"
+	cat "$HOME/.gtk-bookmarks" |escape_stdin |grep -vF  "$OLD_STR" > "$HOME/.gtk-bookmarks.tmp" 
+	echo "$NEW_STR" >> "$HOME/.gtk-bookmarks.tmp"
+	mv -f "$HOME/.gtk-bookmarks.tmp"  "$HOME/.gtk-bookmarks"
 }
 
 create_trash(){
