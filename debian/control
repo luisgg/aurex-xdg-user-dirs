@@ -9,7 +9,7 @@ Standards-Version: 3.8.4
 
 Package: aurex-xdg-user-dirs
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, xdg-user-dirs, aurex-transmute
+Depends: ${shlibs:Depends}, ${misc:Depends}, xdg-user-dirs, aurex-transmute, rsync
 Description: gives xdg-user-dirs-update functionality improved
  Improves the functionality of xdg-user-dirs-update adding support
  for UserFiles directory.

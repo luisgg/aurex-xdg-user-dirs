@@ -66,10 +66,10 @@ create_link() {
 			if rsync -rlt --specials --backup --suffix=".$(date +%F_%R)" "$LOC_DIR/" "$USER_FILES/$1/" ; then
 				# remove old dir
 				rm -fr "$LOC_DIR"
-				ln -s "$USER_FILES/$1" "$(LANGUAGE="$LNG" gettext "$1")"
-				modify_bookmark "$1" "$2"
 			fi
 		fi
+		ln -s "$USER_FILES/$1" "$(LANGUAGE="$LNG" gettext "$1")"
+		modify_bookmark "$1" "$2"
 	fi
 }
 
