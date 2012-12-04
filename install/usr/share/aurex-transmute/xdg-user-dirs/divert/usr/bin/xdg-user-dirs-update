@@ -49,26 +49,25 @@ EOF
 
 }
 
-remove_old_links()
-{
-	ARRAY_LINKS=$1
-	for i in $ARRAY_LINKS; do
-		#log 'i' $i
-		[ -h "$i" ] && rm -f "$i"
-	done
-}
-
-create_link() {
+update_link() {
 	if [ -d "$USER_FILES/$1" ]; then
 		# log "creating link" "$UserFiles/$1"
 		LOC_DIR="$(LANGUAGE="$LNG" gettext "$1")"
-		if [ -d "$LOC_DIR" ] && [ ! -h "$LOC_DIR" ] ; then
-			if rsync -rlt --specials --backup --suffix=".$(date +%F_%R)" "$LOC_DIR/" "$USER_FILES/$1/" ; then
+		if [ -h "$2" ] ; then
+			# old path is just a link, just delete it
+			rm -f "$2"
+		elif [ -d "$2" ] ; then
+			# old path is a directory, so copy files first
+			if rsync -rlt --specials --backup --suffix=".$(date +%F_%R)" "$2/" "$USER_FILES/$1/" ; then
 				# remove old dir
 				rm -fr "$LOC_DIR"
 			fi
 		fi
-		ln -s "$USER_FILES/$1" "$(LANGUAGE="$LNG" gettext "$1")"
+		# let's go to create new link, but first, if exists a directory with the same name, make a backup
+		if [ -d "$LOC_DIR" ] ; then
+			mv "$LOC_DIR" "${LOC_DIR}.$(date +%F_%R)"
+		fi
+		ln -s "$USER_FILES/$1" "$LOC_DIR"
 		modify_bookmark "$1" "$2"
 	fi
 }
@@ -103,7 +102,7 @@ escape(){
 }
 
 escape_stdin(){
-	perl -pe's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg' |sed 's#%2F#/#g;s#%0A#\n#g;s#%3A#:#g'
+	perl -pe's/([^-_.~A-Za-z0-9%:])/sprintf("%%%02X", ord($1))/seg' |sed 's#%2F#/#g;s#%0A#\n#g;s#%3A#:#g'
 }
 
 modify_bookmark(){
@@ -155,22 +154,18 @@ create_userfiles_directories
 
 . $HOME/.config/user-dirs.dirs
 
-LLX_XDG_LINKS="$XDG_DESKTOP_DIR XDG_DOWNLOAD_DIR $XDG_TEMPLATES_DIR $XDG_PUBLICSHARE_DIR $XDG_DOCUMENTS_DIR $XDG_MUSIC_DIR $XDG_PICTURES_DIR $XDG_VIDEOS_DIR"
-
 #Create net UserFiles for users with local home but they are net users
 # NOT IN AUREX !!!!!
 # netUserFiles
-#log "LLX_XDG_LINKS" $LLX_XDG_LINKS
-remove_old_links "${LLX_XDG_LINKS}"
 
-create_link Desktop $XDG_DESKTOP_DIR
-create_link Downloads $XDG_DOWNLOAD_DIR
-create_link Templates $XDG_TEMPLATES_DIR
-create_link Public $XDG_PUBLICSHARE_DIR
-create_link Documents $XDG_DOCUMENTS_DIR
-create_link Music $XDG_MUSIC_DIR
-create_link Pictures $XDG_PICTURES_DIR
-create_link Videos $XDG_VIDEOS_DIR
+update_link Desktop $XDG_DESKTOP_DIR
+update_link Downloads $XDG_DOWNLOAD_DIR
+update_link Templates $XDG_TEMPLATES_DIR
+update_link Public $XDG_PUBLICSHARE_DIR
+update_link Documents $XDG_DOCUMENTS_DIR
+update_link Music $XDG_MUSIC_DIR
+update_link Pictures $XDG_PICTURES_DIR
+update_link Videos $XDG_VIDEOS_DIR
 
 # AUREX: put all in UserFiles 
 #LLX_XDG_LINKS_NONUSERFILES="$XDG_DOWNLOAD_DIR"
@@ -178,11 +173,12 @@ create_link Videos $XDG_VIDEOS_DIR
 
 #create_nonuserfiles_link Downloads "$XDG_DOWNLOAD_DIR"
 
+# update for new lang
 create_user_dirs
+set_lang
 
 # pcmanfm trash not required in AUREX
 #create_trash
 
-set_lang
 
 exit 0
